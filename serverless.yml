@@ -1,0 +1,127 @@
+org: estebes
+app: estebes-passwordless
+service: estebes-passwordless
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: 'us-east-1'
+  versionFunctions: false
+  iam:
+    role:
+      managedPolicies:
+        - "arn:aws:iam::aws:policy/AWSLambda_FullAccess"
+        - "arn:aws:iam::aws:policy/AmazonCognitoPowerUser"
+        - "arn:aws:iam::aws:policy/AmazonCognitoDeveloperAuthenticatedIdentities"
+
+      statements:
+        - Effect: Allow
+          Action:
+            - cognito-idp:AdminInitiateAuth
+            - cognito-idp:AdminCreateUser
+            - cognito-idp:AdminSetUserPassword
+            - ses:SendEmail
+            - ses:SendRawEmail
+          Resource: "*"
+
+  environment:
+    user_pool_id: { Ref: UserPool }
+    client_pool_id: {Ref: UserClient}
+    SES_FROM_ADDRESS: 'estebesm95@gmail.com'
+
+
+functions:
+  signUp:
+    handler: endpoints/signUp.handler
+    events:
+      - http:
+          path: /api/v1/users/signUp
+          method: post
+          cors: true
+
+  signIn:
+    handler: endpoints/signIn.handler
+    events:
+      - http:
+          path: /api/v1/users/signIn
+          method: post
+          cors: true
+
+  codeConfirm:
+    handler: endpoints/verification.handler
+    events:
+      - http:
+          path: /api/v1/users/verification
+          method: post
+          cors: true
+
+  preSignUp:
+    handler: triggers/preSignUp.handler
+    events:
+      - cognitoUserPool:
+          pool: estebes-passwordless
+          trigger: PreSignUp
+          existing: true
+          forceDeploy: true
+
+  cognito-create-auth-challenge:
+    handler: triggers/createAuthChallenge.handler
+    events:
+      - cognitoUserPool:
+          pool: estebes-passwordless
+          trigger: CreateAuthChallenge
+          existing: true
+          forceDeploy: true
+  cognito-define-auth-challenge:
+    handler: triggers/defineAuthChallenge.handler
+    events:
+      - cognitoUserPool:
+          pool: estebes-passwordless
+          trigger: DefineAuthChallenge
+          existing: true
+          forceDeploy: true
+  cognito-verify-auth-challenge:
+    handler: verifyAuthChallenge.handler
+    events:
+      - cognitoUserPool:
+          pool: estebes-passwordless
+          trigger: VerifyAuthChallengeResponse
+          existing: true
+          forceDeploy: true
+
+resources:
+  Resources:
+    UserPool:
+      Type: AWS::Cognito::UserPool
+      DeletionPolicy: Retain
+      Properties:
+        UserPoolName: estebes-passwordless
+        Schema:
+          - Name: email
+            Required: true
+            Mutable: true
+        Policies:
+          PasswordPolicy:
+            MinimumLength: 6
+        EmailConfiguration:
+          EmailSendingAccount: DEVELOPER
+          ReplyToEmailAddress: 'estebesm95@gmail.com' # email address
+          SourceArn:
+            "arn:aws:ses:us-east-1:331535745765:identity/estebesm95@gmail.com" # sourceARN to verified email address in SES
+
+        #EmailVerificationMessage: Your verification code is {####}.
+        #EmailVerificationSubject: Your verification code
+
+        #AutoVerifiedAttributes: ["phone"]
+
+    UserClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        ClientName: estebes-passwordless-client
+        GenerateSecret: false
+        UserPoolId: { Ref: UserPool }
+        AccessTokenValidity: 5
+        IdTokenValidity: 5
+        ExplicitAuthFlows:
+          - "ALLOW_CUSTOM_AUTH"
+          - "ALLOW_REFRESH_TOKEN_AUTH"
