@@ -1,8 +1,7 @@
 const AWS = require("aws-sdk");
 const { sendResponse, validateInput } = require("../utils");
 
-const {user_pool_id} = process.env
-const client_id = '5a2nqlsecpi4g8fnnf76ev5tvb'
+const {user_pool_id, client_id} = process.env
 
 const cognito = new AWS.CognitoIdentityServiceProvider();
 

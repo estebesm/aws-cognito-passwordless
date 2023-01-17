@@ -15,8 +15,6 @@ const handler = async (event) => {
         const params = {
             UserPoolId: user_pool_id,
             Username: email,
-            //Password: password,
-            //ClientId: client_id,
             UserAttributes: [
                 {
                     Name: "email",

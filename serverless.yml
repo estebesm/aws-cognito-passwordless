@@ -26,7 +26,7 @@ provider:
 
   environment:
     user_pool_id: { Ref: UserPool }
-    client_pool_id: {Ref: UserClient}
+    client_id: {Ref: UserClient}
     SES_FROM_ADDRESS: 'estebesm95@gmail.com'
 
 
@@ -81,7 +81,7 @@ functions:
           existing: true
           forceDeploy: true
   cognito-verify-auth-challenge:
-    handler: verifyAuthChallenge.handler
+    handler: triggers/verifyAuthChallenge.handler
     events:
       - cognitoUserPool:
           pool: estebes-passwordless
