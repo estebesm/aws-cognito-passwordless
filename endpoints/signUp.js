@@ -1,8 +1,18 @@
 const AWS = require("aws-sdk");
 const { sendResponse, validateInput } = require("../utils");
 
-const {user_pool_id} = process.env
-const password =  'estebes123';
+function generatePassword(length) {
+    let result = '';
+    let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let charactersLength = characters.length;
+    for (let i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+}
+
+const {user_pool_id} = process.env;
+const password = generatePassword(32);
 
 const cognito = new AWS.CognitoIdentityServiceProvider();
 
@@ -28,16 +38,15 @@ const handler = async (event) => {
                 Password: password,
                 UserPoolId: user_pool_id,
                 Username: email,
-                Permanent: true,
+                Permanent: true
             };
             await cognito.adminSetUserPassword(paramsForSetPass).promise();
+            return sendResponse(200, {
+                message: "User registration successful",
+            });
         }
-
-        return sendResponse(200, {
-            message: "User registration successful",
-        });
+        return sendResponse(500, "Internal server error")
     } catch (error) {
-        console.log(error)
         const message = error.message ? error.message : "Internal server error";
         return sendResponse(500, { message });
     }

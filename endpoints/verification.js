@@ -1,5 +1,5 @@
 const AWS = require("aws-sdk");
-const { sendResponse, validateInput } = require("../utils");
+const { sendResponse } = require("../utils");
 
 const {user_pool_id, client_id} = process.env
 
@@ -19,13 +19,20 @@ const handler = async (event) => {
             }
         }).promise()
 
-        return sendResponse(200, {
-            accessToken: response.AuthenticationResult.AccessToken,
-            refreshToken: response.AuthenticationResult.RefreshToken
-        })
+        if(response.AuthenticationResult){
+            return sendResponse(200, {
+                accessToken: response.AuthenticationResult.AccessToken,
+                refreshToken: response.AuthenticationResult.RefreshToken,
+                idToken: response.AuthenticationResult.IdToken
+            })
+        } else {
+            return sendResponse(400, {
+                message: "Incorrect code"
+            })
+        }
 
     } catch (error) {
-        const message = error.message ? error.message : "Internal serv";
+        const message = error.message ? error.message : "Internal server error";
         return sendResponse(500, { message });
     }
 };

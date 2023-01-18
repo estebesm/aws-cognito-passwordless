@@ -2,7 +2,6 @@ const AWS = require("aws-sdk");
 const { sendResponse, validateInput } = require("../utils");
 
 const {user_pool_id, client_id} = process.env
-const password =  'estebes123';
 
 const cognito = new AWS.CognitoIdentityServiceProvider();
 
@@ -18,7 +17,7 @@ const handler = async (event) => {
             ClientId: client_id,
             AuthParameters: {
                 USERNAME: email,
-                PASSWORD: password
+                //PASSWORD: password
             },
         };
         const response = await cognito.adminInitiateAuth(params).promise();

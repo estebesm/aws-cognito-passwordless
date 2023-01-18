@@ -89,17 +89,22 @@ functions:
           existing: true
           forceDeploy: true
 
+
 resources:
   Resources:
     UserPool:
       Type: AWS::Cognito::UserPool
-      DeletionPolicy: Retain
       Properties:
         UserPoolName: estebes-passwordless
+        UsernameAttributes:
+          - email
+        AutoVerifiedAttributes:
+          - email
         Schema:
           - Name: email
             Required: true
             Mutable: true
+
         Policies:
           PasswordPolicy:
             MinimumLength: 6
@@ -125,3 +130,4 @@ resources:
         ExplicitAuthFlows:
           - "ALLOW_CUSTOM_AUTH"
           - "ALLOW_REFRESH_TOKEN_AUTH"
+
